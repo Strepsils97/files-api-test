@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+
+    api-backend:
+        build: .
+        container_name: 'files-api'
+        volumes:
+            - ./entrypoint.sh:/app/entrypoint.sh
+            - ./requirements.txt:/app/requirements.txt
+            - ./application:/app/application
+        restart: always
