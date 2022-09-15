@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Response, UploadFile
+from fastapi.responses import JSONResponse
 from starlette.responses import StreamingResponse
 
+from application.entities.files import FileInfo
 from application.storages.storages import LocalFileStorage
 
 
@@ -8,12 +10,7 @@ router = APIRouter()
 storage = LocalFileStorage()
 
 
-@router.get(
-    "/{id}",
-    responses={"200": {}},
-    response_class=StreamingResponse,
-    tags=["files"],
-)
+@router.get("/{id}", response_class=StreamingResponse, tags=["files"])
 async def get_file(id: str):
     if not storage.exists(id):
         return Response(status_code=404)
@@ -24,21 +21,17 @@ async def get_file(id: str):
     )
 
 
-@router.head(
-    "/{id}",
-    responses={"404": {}, "200": {}},
-    tags=["files"],
-)
-async def file_info(id: str):
+@router.head("/{id}", tags=["files"])
+async def file_info(id: str, response: Response):
     if not storage.exists(id):
         return Response(status_code=404)
-    name, size, last_modified, created_at = await storage.get_info(id)
-    return dict(
-        name=name,
-        size=size,
-        last_modified=last_modified,
-        created_at=created_at,
-    )
+    data = await storage.get_info(id)
+    info = FileInfo(**data)
+    response.headers["File-Name"] = info.name
+    response.headers["File-Size"] = info.size
+    response.headers["File-Created"] = info.created_at
+    response.headers["File-Updated"] = info.last_modified
+    return {}
 
 
 @router.post(

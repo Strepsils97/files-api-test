@@ -22,7 +22,12 @@ class LocalFileStorage(BaseFileStorage):
         size = await sync_to_async(os.path.getsize)(path)
         last_modified = await sync_to_async(os.path.getmtime)(path)
         created_at = await sync_to_async(os.path.getctime)(path)
-        return name, size, last_modified, created_at
+        return dict(
+            name=name,
+            size=size,
+            last_modified=last_modified,
+            created_at=created_at,
+        )
 
     async def get_chunks(self, path):
         path = self.get_full_path(path)
